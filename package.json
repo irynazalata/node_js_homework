@@ -1,0 +1,25 @@
+{
+  "name": "node_js_homework",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/irynazalata/node_js_homework.git"
+  },
+  "keywords": [],
+  "author": "IRYNA_ZALATA <iryna.zalata@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/irynazalata/node_js_homework/issues"
+  },
+  "homepage": "https://github.com/irynazalata/node_js_homework#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
