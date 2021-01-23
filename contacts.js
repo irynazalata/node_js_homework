@@ -30,11 +30,8 @@ async function addContact(name, email, phone) {
   const contact = { id: uuid(), name, email, phone };
   const newList = await listContacts();
   newList.push(contact);
-  const addedContact = await fs.writeFile(
-    contactsPath,
-    JSON.stringify(newList),
-  );
-  return addedContact;
+  fs.writeFile(contactsPath, JSON.stringify(newList));
+  return newList;
 }
 
 module.exports = {

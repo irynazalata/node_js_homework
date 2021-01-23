@@ -6,22 +6,26 @@ const {
 } = require('./contacts.js');
 const argv = require('yargs').argv;
 
-function invokeAction({ action, id, name, email, phone }) {
+async function invokeAction({ action, id, name, email, phone }) {
   switch (action) {
     case 'list':
-      // ...
+      const list = await listContacts();
+      console.table(list);
       break;
 
     case 'get':
-      // ... id
+      const contactById = await getContactById(id);
+      console.table(contactById);
       break;
 
     case 'add':
-      // ... name email phone
+      const newList = await addContact(name, email, phone);
+      console.table(newList);
       break;
 
     case 'remove':
-      // ... id
+      const newContactsList = await removeContact(id);
+      console.table(newContactsList);
       break;
 
     default:

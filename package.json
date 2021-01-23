@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/irynazalata/node_js_homework#readme",
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "yargs": "^16.2.0"
   },
   "dependencies": {
     "uuidv4": "^6.2.6"
