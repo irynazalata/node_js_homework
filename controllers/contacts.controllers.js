@@ -89,11 +89,11 @@ class ContactsController {
       name: Joi.string(),
       email: Joi.string(),
       phone: Joi.string(),
-    });
+    }).min(1);
 
     const validationResult = validationRules.validate(req.body);
 
-    if (validationResult.error || Object.entries(req.body).length === 0) {
+    if (validationResult.error) {
       return res.status(400).send({ message: 'missing fields' });
     }
 
