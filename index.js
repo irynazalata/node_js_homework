@@ -1,31 +1,58 @@
+// Init express server
+// Connect middlewares
+// Declare routes
+// Connect to db
+// Listen on port
+
 const express = require('express');
 const cors = require('cors');
 const logger = require('morgan');
-const contactsRoutes = require('./routes/contacts.routes');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const contactsRoutes = require('./contacts/contacts.routes');
 
+dotenv.config();
 const PORT = process.env.port || 3000;
 
-class Server {
-  start() {
-    this.server = express();
-    this.initMiddlewares();
-    this.initRoutes();
-    this.listen();
-  }
-  initMiddlewares() {
-    this.server.use(express.json());
-    this.server.use(cors({ origin: '*' }));
-    this.server.use(logger('dev'));
-  }
-  initRoutes() {
-    this.server.use('/api/contacts', contactsRoutes);
-  }
-  listen() {
-    this.server.listen(PORT, () => {
-      console.log(`Server is listening on port ${PORT}`);
+function start() {
+  const app = initServer();
+  connectMiddlewares(app);
+  declareRoutes(app);
+  connectToDb();
+  listen(app);
+}
+
+function initServer() {
+  return express();
+}
+
+function connectMiddlewares(app) {
+  app.use(express.json());
+  app.use(cors({ origin: '*' }));
+  app.use(logger('dev'));
+}
+
+function declareRoutes(app) {
+  app.use('/api/contacts', contactsRoutes);
+}
+
+async function connectToDb() {
+  try {
+    await mongoose.connect(process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
+    console.log('Database connection successful');
+  } catch (err) {
+    console.log(err.message);
+    process.exit(1);
   }
 }
 
-const server = new Server();
-server.start();
+function listen(app) {
+  app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+  });
+}
+
+start();
