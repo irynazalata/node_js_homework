@@ -5,7 +5,7 @@ const {
 const Joi = require('joi');
 
 async function getContacts(req, res) {
-  const contacts = await Contact.find();
+  const contacts = await Contact.find({}, { __v: 0 });
   res.json(contacts);
 }
 
@@ -13,7 +13,7 @@ async function getContactByID(req, res) {
   const {
     params: { contactId },
   } = req;
-  const contactById = await Contact.findById(contactId);
+  const contactById = await Contact.findById(contactId, y);
   if (!contactById) res.status(400).send('Contact is not found');
   res.json(contactById);
 }

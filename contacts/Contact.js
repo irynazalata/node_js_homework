@@ -30,7 +30,6 @@ const ContactSchema = new Schema(
       type: String,
     },
   },
-  { versionKey: false },
 );
 
 const Contact = mongoose.model('Contact', ContactSchema);
