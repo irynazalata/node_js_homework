@@ -15,5 +15,11 @@ router.get(
   userControllers.authorize,
   userControllers.getUser,
 );
+router.patch(
+  '/users/current',
+  userControllers.authorize,
+  userControllers.validateUserSubscription,
+  userControllers.updateUserSubscription,
+);
 
 module.exports = router;

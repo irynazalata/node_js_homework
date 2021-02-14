@@ -11,11 +11,12 @@ async function createUser(req, res) {
     const { body } = req;
     const hashedPassword = await bcrypt.hash(body.password, 14);
 
-    // const users = await User.find();
-    // const emailExists = users.find(user => user.email === body.email);
-    // if (emailExists) {
-    //   return res.status(409).send({ message: 'Email in use' });
-    // }
+    const emailExists = await User.findOne({
+      email: body.email,
+    });
+    if (emailExists) {
+      return res.status(409).send({ message: 'Email in use' });
+    }
 
     const user = await User.create({
       ...body,
@@ -27,7 +28,7 @@ async function createUser(req, res) {
       .status(201)
       .json({ user: { email: email, subscription: subscription } });
   } catch (error) {
-    res.status(409).send('Email in use');
+    res.status(400).send(error);
   }
 }
 
@@ -35,7 +36,7 @@ function validateUser(req, res, next) {
   const validationRules = Joi.object({
     email: Joi.string().required(),
     password: Joi.string().required(),
-    subscription: Joi.string(),
+    subscription: Joi.string().default('free').required(),
   });
 
   const validationResult = validationRules.validate(req.body);
@@ -126,6 +127,42 @@ async function getUser(req, res) {
     subscription: subscription,
   });
 }
+
+function validateUserSubscription(req, res, next) {
+  const validationRules = Joi.object({
+    subscription: Joi.string().valid('free', 'pro', 'premium').required(),
+  });
+
+  const validationResult = validationRules.validate(req.body);
+
+  if (validationResult.error) {
+    return res.status(400).send(validationResult.error.message);
+  }
+
+  next();
+}
+
+async function updateUserSubscription(req, res) {
+  try {
+    const { _id } = req.user;
+    const { subscription } = req.body;
+    const updatedUser = await User.findByIdAndUpdate(
+      _id,
+      { subscription },
+      {
+        new: true,
+      },
+    );
+
+    if (!updatedUser) res.status(400).send('User is not found');
+    res.json({
+      email: updatedUser.email,
+      subscription: updatedUser.subscription,
+    });
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
 module.exports = {
   createUser,
   validateUser,
@@ -133,4 +170,6 @@ module.exports = {
   authorize,
   logout,
   getUser,
+  validateUserSubscription,
+  updateUserSubscription,
 };
