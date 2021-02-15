@@ -10,6 +10,7 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const contactsRoutes = require('./contacts/contacts.routes');
+const usersRoutes = require('./users/users.routes');
 
 dotenv.config();
 const PORT = process.env.port || 3000;
@@ -34,6 +35,7 @@ function connectMiddlewares(app) {
 
 function declareRoutes(app) {
   app.use('/api/contacts', contactsRoutes);
+  app.use('', usersRoutes);
 }
 
 async function connectToDb() {

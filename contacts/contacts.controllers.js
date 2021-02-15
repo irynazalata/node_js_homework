@@ -5,17 +5,37 @@ const {
 const Joi = require('joi');
 
 async function getContacts(req, res) {
-  const contacts = await Contact.find();
-  res.json(contacts);
+  try {
+    const {
+      query: { sub, page, limit = 20 },
+    } = req;
+
+    const { docs: contacts } = await Contact.paginate(
+      sub ? { subscription: sub } : {},
+      page
+        ? {
+            page: page,
+            limit: limit,
+          }
+        : {},
+    );
+    res.json(contacts);
+  } catch (error) {
+    res.status(400).send(error);
+  }
 }
 
 async function getContactByID(req, res) {
-  const {
-    params: { contactId },
-  } = req;
-  const contactById = await Contact.findById(contactId);
-  if (!contactById) res.status(400).send('Contact is not found');
-  res.json(contactById);
+  try {
+    const {
+      params: { contactId },
+    } = req;
+    const contactById = await Contact.findById(contactId);
+    if (!contactById) res.status(400).send('Contact is not found');
+    res.json(contactById);
+  } catch (error) {
+    res.status(400).send(error);
+  }
 }
 
 async function addContact(req, res) {
