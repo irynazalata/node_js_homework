@@ -1,8 +1,14 @@
-const User = require('./User');
+const fs = require('fs');
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const dotenv = require('dotenv');
+const Avatar = require('avatar-builder');
+const imagemin = require('imagemin');
+const imageminPngquant = require('imagemin-pngquant');
+
+const User = require('./User');
 
 dotenv.config();
 
@@ -18,15 +24,49 @@ async function createUser(req, res) {
       return res.status(409).send({ message: 'Email in use' });
     }
 
+    const avatarName = Date.now();
+    Avatar.builder(
+      Avatar.Image.roundedRectMask(
+        Avatar.Image.compose(
+          Avatar.Image.randomFillStyle(),
+          Avatar.Image.shadow(Avatar.Image.margin(Avatar.Image.cat(), 8), {
+            blur: 5,
+            offsetX: 2.5,
+            offsetY: -2.5,
+            color: 'rgba(0,0,0,0.7)',
+          }),
+        ),
+        28,
+      ),
+      128,
+      128,
+    )
+      .create(body.email)
+      .then(buffer => fs.writeFileSync(`tmp/${avatarName}.png`, buffer));
+
+    await imagemin([`tmp/${avatarName}.png`], {
+      destination: 'public/images',
+      plugins: [
+        imageminPngquant({
+          quality: [0.6, 0.8],
+        }),
+      ],
+    });
+
     const user = await User.create({
       ...body,
+      avatarURL: `http://localhost:3000/images/${avatarName}.png`,
       password: hashedPassword,
     });
 
-    const { email, subscription } = user;
-    res
-      .status(201)
-      .json({ user: { email: email, subscription: subscription } });
+    const { email, subscription, avatarURL } = user;
+    res.status(201).json({
+      user: {
+        email: email,
+        subscription: subscription,
+        avatarURL: avatarURL,
+      },
+    });
   } catch (error) {
     res.status(400).send(error);
   }
@@ -36,7 +76,7 @@ function validateUser(req, res, next) {
   const validationRules = Joi.object({
     email: Joi.string().required(),
     password: Joi.string().required(),
-    subscription: Joi.string().default('free').required(),
+    subscription: Joi.string().default('free'),
   });
 
   const validationResult = validationRules.validate(req.body);
@@ -163,6 +203,27 @@ async function updateUserSubscription(req, res) {
     res.status(400).send(error);
   }
 }
+
+async function updateAvatar(req, res) {
+  try {
+    const { _id } = req.user;
+    const { filename } = req.file;
+    const updatedUser = await User.findByIdAndUpdate(
+      _id,
+      { avatarURL: `http://localhost:3000/images/${filename}` },
+      {
+        new: true,
+      },
+    );
+
+    if (!updatedUser) res.status(400).send('User is not found');
+    res.json({
+      avatarURL: updatedUser.avatarURL,
+    });
+  } catch (error) {
+    res.status(400).send(error);
+  }
+}
 module.exports = {
   createUser,
   validateUser,
@@ -172,4 +233,5 @@ module.exports = {
   getUser,
   validateUserSubscription,
   updateUserSubscription,
+  updateAvatar,
 };
