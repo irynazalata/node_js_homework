@@ -46,7 +46,7 @@ function connectMiddlewares(app) {
   app.use(express.json());
   app.use(cors({ origin: '*' }));
   app.use(logger('dev'));
-  app.use(express.static('public'));
+  app.use('/images', express.static('public/images'));
 }
 
 function declareRoutes(app) {

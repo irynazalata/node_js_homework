@@ -11,6 +11,7 @@ const imageminPngquant = require('imagemin-pngquant');
 const User = require('./User');
 
 dotenv.config();
+const PORT = process.env.port || 3000;
 
 async function createUser(req, res) {
   try {
@@ -55,7 +56,7 @@ async function createUser(req, res) {
 
     const user = await User.create({
       ...body,
-      avatarURL: `http://localhost:3000/images/${avatarName}.png`,
+      avatarURL: `http://localhost:${PORT}/images/${avatarName}.png`,
       password: hashedPassword,
     });
 
@@ -210,7 +211,7 @@ async function updateAvatar(req, res) {
     const { filename } = req.file;
     const updatedUser = await User.findByIdAndUpdate(
       _id,
-      { avatarURL: `http://localhost:3000/images/${filename}` },
+      { avatarURL: `http://localhost:${PORT}/images/${filename}` },
       {
         new: true,
       },
