@@ -3,17 +3,32 @@
 // Declare routes
 // Connect to db
 // Listen on port
+const path = require('path');
 
 const express = require('express');
+const multer = require('multer');
 const cors = require('cors');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+
 const contactsRoutes = require('./contacts/contacts.routes');
 const usersRoutes = require('./users/users.routes');
 
 dotenv.config();
 const PORT = process.env.port || 3000;
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/images');
+  },
+  filename: function (req, file, cb) {
+    const { ext } = path.parse(file.originalname);
+    cb(null, `${Date.now()}${ext}`);
+  },
+});
+
+const upload = multer({ storage });
 
 function start() {
   const app = initServer();
@@ -31,11 +46,15 @@ function connectMiddlewares(app) {
   app.use(express.json());
   app.use(cors({ origin: '*' }));
   app.use(logger('dev'));
+  app.use(express.static('public'));
 }
 
 function declareRoutes(app) {
   app.use('/api/contacts', contactsRoutes);
   app.use('', usersRoutes);
+  app.post('/images', upload.single('avatar'), (req, res) => {
+    res.send({ file: req.file, ...req.body });
+  });
 }
 
 async function connectToDb() {

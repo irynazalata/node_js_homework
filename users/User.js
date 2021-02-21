@@ -7,8 +7,8 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
-
   password: String,
+  avatarURL: String,
   subscription: {
     type: String,
     enum: ['free', 'pro', 'premium'],
