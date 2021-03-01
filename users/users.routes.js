@@ -39,7 +39,7 @@ async function minifyAvatar(req, res, next) {
 router.post(
   '/auth/register',
   userControllers.validateUser,
-  userControllers.createUser,
+  userControllers.signUpUser,
 );
 router.post('/auth/login', userControllers.validateUser, userControllers.login);
 router.post('/auth/logout', userControllers.authorize, userControllers.logout);
@@ -61,5 +61,6 @@ router.patch(
   minifyAvatar,
   userControllers.updateAvatar,
 );
+router.get('/auth/verify/:verificationToken', userControllers.verifyUser);
 
 module.exports = router;
