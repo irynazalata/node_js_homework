@@ -11,11 +11,14 @@ const cors = require('cors');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const sgMail = require('@sendgrid/mail');
 
 const contactsRoutes = require('./contacts/contacts.routes');
 const usersRoutes = require('./users/users.routes');
 
 dotenv.config();
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const PORT = process.env.port || 3000;
 
 const storage = multer.diskStorage({

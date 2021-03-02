@@ -7,16 +7,19 @@ const dotenv = require('dotenv');
 const Avatar = require('avatar-builder');
 const imagemin = require('imagemin');
 const imageminPngquant = require('imagemin-pngquant');
+const { v4: uuidv4 } = require('uuid');
+const sgMail = require('@sendgrid/mail');
 
 const User = require('./User');
 
 dotenv.config();
 const PORT = process.env.port || 3000;
 
-async function createUser(req, res) {
+async function signUpUser(req, res) {
   try {
     const { body } = req;
     const hashedPassword = await bcrypt.hash(body.password, 14);
+    const verifiedToken = await uuidv4();
 
     const emailExists = await User.findOne({
       email: body.email,
@@ -58,14 +61,17 @@ async function createUser(req, res) {
       ...body,
       avatarURL: `http://localhost:${PORT}/images/${avatarName}.png`,
       password: hashedPassword,
+      verificationToken: verifiedToken,
     });
 
-    const { email, subscription, avatarURL } = user;
+    const { email, subscription, avatarURL, verificationToken } = user;
+    sendVerificationEmail(email, verificationToken);
     res.status(201).json({
       user: {
         email: email,
         subscription: subscription,
         avatarURL: avatarURL,
+        verificationToken: verificationToken,
       },
     });
   } catch (error) {
@@ -87,6 +93,34 @@ function validateUser(req, res, next) {
   }
 
   next();
+}
+
+async function sendVerificationEmail(email, verificationToken) {
+  const msg = {
+    to: email,
+    from: 'iryna.zalata@gmail.com',
+    subject: 'Please, verify your account',
+    html: `Thank you for choosing our application. To verify your account, please, visit <a href="http://localhost:${PORT}/auth/verify/${verificationToken}">this link</a>`,
+  };
+
+  await sgMail.send(msg);
+}
+
+async function verifyUser(req, res) {
+  const {
+    params: { verificationToken },
+  } = req;
+  const verificationTokenExists = await User.findOne({
+    verificationToken,
+  });
+  if (verificationTokenExists) {
+    await User.updateOne(
+      { _id: verificationTokenExists._id },
+      { $unset: { verificationToken: '' } },
+    );
+    return res.status(200).send('Your verification is successful');
+  }
+  res.status(404).send('User not found');
 }
 
 async function login(req, res) {
@@ -225,8 +259,9 @@ async function updateAvatar(req, res) {
     res.status(400).send(error);
   }
 }
+
 module.exports = {
-  createUser,
+  signUpUser,
   validateUser,
   login,
   authorize,
@@ -235,4 +270,5 @@ module.exports = {
   validateUserSubscription,
   updateUserSubscription,
   updateAvatar,
+  verifyUser,
 };
